@@ -1,4 +1,6 @@
 const { response } = require('express'); // Importacion para cargar la respuesta
+const bcrypts = require('bcryptjs'); // paquete de npm i bcryptjs para la encriptación de caracteres
+const Usuario = require('../models/user'); // importacion de modelo
 
 
 const userGet = (req, res = response) => {
@@ -12,15 +14,40 @@ const userGet = (req, res = response) => {
     });
 }
 
-const userPost = (req, res = response) => {
-    const body = req.body; // Se extrae los parametros que llegan aca. NOTA: crear el middleware para poder ver esto
+// Ruta que inserta en BD
+const userPost = async (req, res = response) => {   
+    // Se destructura solo lo que queremos que se guarde
+    const { nombre, correo, password, rol } = req.body; // Se extrae los parametros que llegan aca. NOTA: crear el middleware para poder ver esto
+    const usuario = new Usuario( { nombre, correo, password, rol }); // Creo instancia de tipo usuario y se envia objeto que viene
+
+    // Verificar si el correo existe
+    const existeEmail = await Usuario.findOne({ correo });
+    if (existeEmail) {
+        return res.status(400).json({
+            msg: 'El correo ya existe'
+        });
+    }
+
+    // Encriptar o hash de contrasena
+    const salt = bcrypts.genSaltSync(); // Esto sirve para que tan compleja sea la contrasena para este caso sera 10
+    usuario.password = bcrypts.hashSync(password, salt); // Encripta en una sola via. se pasan los parametros y ya
+
+    try {
+        // Guardo cambios en BD
+    await usuario.save();
 
 
     res.status(201).json({ // EJ de envio de un codigo de estado
         ok: true,
-        msg: 'POST ',
-        body // Muestro body enviado en parametros
+        msg: 'Usuario creado correctamente ',
+        usuario
+        // body // Muestro body enviado en parametros
     });
+} catch (e) {
+    return res.status(400).json({
+        msg: e
+    });
+}
 };
 
 const userPut = (req, res = response) => {

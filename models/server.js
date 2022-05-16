@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors'); // ambas importacioones se tienen que instalar de npm
+const { dbConnection } = require('../database/config'); // importacion de metodo de conecion
 
 class Server {
 
@@ -8,12 +9,20 @@ class Server {
         this.port = process.env.PORT; // Se carga el puerto de manera dinaica
         this.usuariosPath = '/api/usuarios'; // Ruta relativa, se puede manejar desde endpoints
 
+        // Conectar a BD
+        this.conectarBD();
+
         // Middlwares
         // Son funciones que van a adjuntar otra funcionalidad al webserver
         this.middlewares();
 
         // se cargan las rutas
         this.routes();
+    }
+
+    // Metodo de conexion a BD
+    async conectarBD() {
+        await dbConnection(); // Se llama la funcionalidad para conectar a la BD
     }
 
     middlewares() {
