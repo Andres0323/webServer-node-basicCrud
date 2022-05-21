@@ -36,4 +36,11 @@ const UserSchema = Schema({
     }
 });
 
+// Sbreescribir el modelo. Se hace para devolver en las respuesta el valor que se desea
+
+UserSchema.methods.toJSON = function() {
+    const { __v, password, ...rest } = this.toObject();
+    return rest;
+}
+
 module.exports = model('User', UserSchema); // El string debe de ser en singular ya que mongoose adjunta una S al final
